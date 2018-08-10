@@ -20,9 +20,11 @@ class BudgetCalculator(val repository: IBudgetRepository) {
 
         var firstBudgetAmount = 0.0
         var lastBudgetAmount = 0.0
+        var middleMonthsAmount = 0.0
 
         val firstMonthBudget = getBudgetsByDate(budgets, startDate)
         val lastMonthBudget = getBudgetsByDate(budgets, endDate)
+        val middleMonthBudget = budgets.filterNot { it.yearMonth == toYearMonthFormat(startDate) || it.yearMonth == toYearMonthFormat(endDate) }
         if (firstMonthBudget != null) {
             val budgetLastDate = LocalDate.of(budgetYearMonthToDate(firstMonthBudget).year, budgetYearMonthToDate(firstMonthBudget).month, budgetYearMonthToDate(firstMonthBudget).lengthOfMonth())
 
@@ -37,7 +39,12 @@ class BudgetCalculator(val repository: IBudgetRepository) {
             lastBudgetAmount = budgetAmount(lastMonthBudget, days)
         }
 
-        return firstBudgetAmount + lastBudgetAmount
+        for (budget in middleMonthBudget) {
+            val days = budgetYearMonthToDate(budget).lengthOfMonth().toLong()
+            middleMonthsAmount += budgetAmount(budget, days)
+        }
+
+        return firstBudgetAmount + lastBudgetAmount + middleMonthsAmount
     }
 
     private fun budgetAmount(monthBudget: Budget, daysInBudget: Long): Double {
