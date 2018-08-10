@@ -5,47 +5,66 @@ import java.time.format.DateTimeFormatter
 class BudgetCalculator(val repository: IBudgetRepository) {
     fun getBudget(startDate: LocalDate, endDate: LocalDate): Double {
         val budgets = repository.getAll()
-        if (toYearMonthFormat(startDate) == toYearMonthFormat(endDate)) {
 
-            val budget = getBudgetsByDate(budgets, startDate)
-            if (budget != null) {
+        if (isSameMonth(startDate, endDate)) {
 
-                val days = dayDuration(startDate, endDate)
-
-                val budgeDate = budgetYearMonthToDate(budget)
-                val budgetPerDay = budgetPerDay(budget, budgeDate)
-                return budgetPerDay * days
-            }
+            return sameMonthBudget(startDate, endDate, budgets)
         }
 
-        var firstBudgetAmount = 0.0
-        var lastBudgetAmount = 0.0
-        var middleMonthsAmount = 0.0
+        val firstBudgetAmount = firstMonthBudget(budgets, startDate)
+        val lastBudgetAmount = lastMonthBudget(budgets, endDate)
+        val middleMonthsAmount = middleMonthBudget(budgets, startDate, endDate)
 
-        val firstMonthBudget = getBudgetsByDate(budgets, startDate)
-        val lastMonthBudget = getBudgetsByDate(budgets, endDate)
+        return firstBudgetAmount + lastBudgetAmount + middleMonthsAmount
+    }
+
+    private fun sameMonthBudget(startDate: LocalDate, endDate: LocalDate, budgets: List<Budget>): Double {
+        val budget = getBudgetsByDate(budgets, startDate)
+        if (budget != null) {
+            val days = dayDuration(startDate, endDate)
+
+            val budgeDate = budgetYearMonthToDate(budget)
+            val budgetPerDay = budgetPerDay(budget, budgeDate)
+            return budgetPerDay * days
+        }
+        return 0.0
+    }
+
+    private fun middleMonthBudget(budgets: List<Budget>, startDate: LocalDate, endDate: LocalDate): Double {
+        var returnAmount = 0.0
         val middleMonthBudget = budgets.filterNot { it.yearMonth == toYearMonthFormat(startDate) || it.yearMonth == toYearMonthFormat(endDate) }
-        if (firstMonthBudget != null) {
-            val budgetLastDate = LocalDate.of(budgetYearMonthToDate(firstMonthBudget).year, budgetYearMonthToDate(firstMonthBudget).month, budgetYearMonthToDate(firstMonthBudget).lengthOfMonth())
-
-            val days = dayDuration(startDate, budgetLastDate)
-            firstBudgetAmount = budgetAmount(firstMonthBudget, days)
+        for (budget in middleMonthBudget) {
+            val days = budgetYearMonthToDate(budget).lengthOfMonth().toLong()
+            returnAmount += budgetAmount(budget, days)
         }
+        return returnAmount
+    }
 
+    private fun lastMonthBudget(budgets: List<Budget>, endDate: LocalDate): Double {
+        val lastMonthBudget = getBudgetsByDate(budgets, endDate)
         if (lastMonthBudget != null) {
             val budgetFirstDate = LocalDate.of(budgetYearMonthToDate(lastMonthBudget).year, budgetYearMonthToDate(lastMonthBudget).month, 1)
 
             val days = dayDuration(budgetFirstDate, endDate)
-            lastBudgetAmount = budgetAmount(lastMonthBudget, days)
+            return budgetAmount(lastMonthBudget, days)
         }
-
-        for (budget in middleMonthBudget) {
-            val days = budgetYearMonthToDate(budget).lengthOfMonth().toLong()
-            middleMonthsAmount += budgetAmount(budget, days)
-        }
-
-        return firstBudgetAmount + lastBudgetAmount + middleMonthsAmount
+        return 0.0
     }
+
+    private fun firstMonthBudget(budgets: List<Budget>, startDate: LocalDate): Double {
+
+        val firstMonthBudget = getBudgetsByDate(budgets, startDate)
+        if (firstMonthBudget != null) {
+            val budgetLastDate = LocalDate.of(budgetYearMonthToDate(firstMonthBudget).year, budgetYearMonthToDate(firstMonthBudget).month, budgetYearMonthToDate(firstMonthBudget).lengthOfMonth())
+
+            val days = dayDuration(startDate, budgetLastDate)
+            return budgetAmount(firstMonthBudget, days)
+        }
+        return 0.0
+    }
+
+    private fun isSameMonth(startDate: LocalDate, endDate: LocalDate) =
+            toYearMonthFormat(startDate) == toYearMonthFormat(endDate)
 
     private fun budgetAmount(monthBudget: Budget, daysInBudget: Long): Double {
         val budgeDate = budgetYearMonthToDate(monthBudget)

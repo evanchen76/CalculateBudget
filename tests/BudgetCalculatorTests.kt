@@ -56,8 +56,7 @@ class BudgetCalculatorTests {
 
         `when`(stubBudgetRepository.getAll()).thenReturn(budgets)
 
-        val budget = budgetCalculator.getBudget(startDate, endDate)
-        Assert.assertEquals(1310.0, budget, 0.001)
+        bugdetShouldBe(startDate, endDate, 1310.0)
     }
 
     @Test
@@ -70,8 +69,7 @@ class BudgetCalculatorTests {
 
         `when`(stubBudgetRepository.getAll()).thenReturn(budgets)
 
-        val budget = budgetCalculator.getBudget(startDate, endDate)
-        Assert.assertEquals(4820.0, budget, 0.001)
+        bugdetShouldBe(startDate, endDate, 4820.0)
     }
 
     private fun bugdetShouldBe(startDate: LocalDate, endDate: LocalDate, expected: Double) {
