@@ -72,6 +72,19 @@ class BudgetCalculatorTests {
         bugdetShouldBe(startDate, endDate, 4820.0)
     }
 
+    @Test
+    fun cross_Multiple_Month_With_SomeMonth_No_Budget() {
+
+        val startDate = LocalDate.of(2018, 1, 30)
+        val endDate = LocalDate.of(2018, 3, 10)
+
+        val budgets = listOf(Budget("201801", 310.0), Budget("201803", 6200.0))
+
+        `when`(stubBudgetRepository.getAll()).thenReturn(budgets)
+
+        bugdetShouldBe(startDate, endDate, 2020.0)
+    }
+
     private fun bugdetShouldBe(startDate: LocalDate, endDate: LocalDate, expected: Double) {
         val budget = budgetCalculator.getBudget(startDate, endDate)
         Assert.assertEquals(expected, budget, 0.001)
