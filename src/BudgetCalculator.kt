@@ -18,31 +18,32 @@ class BudgetCalculator(val repository: IBudgetRepository) {
             }
         }
 
-        var totalAmount = 0.0
         var firstBudgetAmount = 0.0
         var lastBudgetAmount = 0.0
 
         val firstMonthBudget = getBudgetsByDate(budgets, startDate)
         val lastMonthBudget = getBudgetsByDate(budgets, endDate)
         if (firstMonthBudget != null) {
-            val budgetLastDate = LocalDate.of(budgetYearMonthToDate(firstMonthBudget).year,budgetYearMonthToDate(firstMonthBudget).month, budgetYearMonthToDate(firstMonthBudget).lengthOfMonth())
+            val budgetLastDate = LocalDate.of(budgetYearMonthToDate(firstMonthBudget).year, budgetYearMonthToDate(firstMonthBudget).month, budgetYearMonthToDate(firstMonthBudget).lengthOfMonth())
 
             val days = dayDuration(startDate, budgetLastDate)
-            val budgeDate = budgetYearMonthToDate(firstMonthBudget)
-            val budgetPerDay = budgetPerDay(firstMonthBudget, budgeDate)
-            firstBudgetAmount = budgetPerDay * days
+            firstBudgetAmount = budgetAmount(firstMonthBudget, days)
         }
 
         if (lastMonthBudget != null) {
-            val budgetFirstDate = LocalDate.of(budgetYearMonthToDate(lastMonthBudget).year,budgetYearMonthToDate(lastMonthBudget).month, 1)
+            val budgetFirstDate = LocalDate.of(budgetYearMonthToDate(lastMonthBudget).year, budgetYearMonthToDate(lastMonthBudget).month, 1)
 
             val days = dayDuration(budgetFirstDate, endDate)
-            val budgeDate = budgetYearMonthToDate(lastMonthBudget)
-            val budgetPerDay = budgetPerDay(lastMonthBudget, budgeDate)
-            lastBudgetAmount = budgetPerDay * days
+            lastBudgetAmount = budgetAmount(lastMonthBudget, days)
         }
 
         return firstBudgetAmount + lastBudgetAmount
+    }
+
+    private fun budgetAmount(monthBudget: Budget, daysInBudget: Long): Double {
+        val budgeDate = budgetYearMonthToDate(monthBudget)
+        val budgetPerDay = budgetPerDay(monthBudget, budgeDate)
+        return budgetPerDay * daysInBudget
     }
 
     private fun getBudgetsByDate(budgets: List<Budget>, date: LocalDate) =
