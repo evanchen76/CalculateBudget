@@ -46,6 +46,20 @@ class BudgetCalculatorTests {
 
     }
 
+    @Test
+    fun cross_Date() {
+
+        val startDate = LocalDate.of(2018, 1, 1)
+        val endDate = LocalDate.of(2018, 2, 10)
+
+        val budgets = listOf(Budget("201801", 310.0), Budget("201802", 2800.0))
+
+        `when`(stubBudgetRepository.getAll()).thenReturn(budgets)
+
+        val budget = budgetCalculator.getBudget(startDate, endDate)
+        Assert.assertEquals(1310.0, budget, 0.001)
+    }
+
     private fun bugdetShouldBe(startDate: LocalDate, endDate: LocalDate, expected: Double) {
         val budget = budgetCalculator.getBudget(startDate, endDate)
         Assert.assertEquals(expected, budget, 0.001)
